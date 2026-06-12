@@ -23,6 +23,16 @@ export interface DocumentListResponse {
   page_size: number
 }
 
+export interface DocumentContentResponse {
+  id: string
+  title: string
+  authors: string | null
+  abstract: string | null
+  content: string
+  status: string
+  publication_date: string | null
+}
+
 export const documentsApi = {
   upload: (file: File, knowledgeBaseId: string, title?: string) => {
     const formData = new FormData()
@@ -34,10 +44,17 @@ export const documentsApi = {
     })
   },
 
-  list: (params?: { knowledge_base_id?: string; page?: number; page_size?: number }) =>
+  list: (params?: { knowledge_base_id?: string; status?: string; page?: number; page_size?: number }) =>
     apiClient.get<DocumentListResponse>('/documents', { params }),
 
   get: (id: string) => apiClient.get<DocumentItem>(`/documents/${id}`),
+
+  getContent: (id: string) => apiClient.get<DocumentContentResponse>(`/documents/${id}/content`),
+
+  reindex: (id: string) => apiClient.post(`/documents/${id}/reindex`),
+
+  reindexBatch: (params?: { knowledge_base_id?: string; limit?: number }) =>
+    apiClient.post('/documents/reindex', null, { params }),
 
   delete: (id: string) => apiClient.delete(`/documents/${id}`),
 }

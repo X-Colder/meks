@@ -1,9 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Input, Card, List, Tag, Typography, Select, Spin, Empty } from 'antd'
 import { SearchOutlined } from '@ant-design/icons'
 import { searchApi, SearchResultItem } from '@/api/search'
-import { knowledgeBasesApi, KnowledgeBase } from '@/api/knowledgeBases'
-import { useEffect } from 'react'
+import { useKBStore } from '@/stores/knowledgeBaseStore'
+import DocumentDetail from '@/components/documents/DocumentDetail'
 
 const { Title, Text, Paragraph } = Typography
 
@@ -11,13 +11,15 @@ export default function Search() {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResultItem[]>([])
   const [loading, setLoading] = useState(false)
-  const [kbs, setKbs] = useState<KnowledgeBase[]>([])
   const [selectedKbs, setSelectedKbs] = useState<string[]>([])
   const [durationMs, setDurationMs] = useState(0)
+  const [viewDocId, setViewDocId] = useState<string | null>(null)
+
+  const { kbs, fetchKbs } = useKBStore()
 
   useEffect(() => {
-    knowledgeBasesApi.list().then((res) => setKbs(res.data))
-  }, [])
+    fetchKbs()
+  }, [fetchKbs])
 
   const handleSearch = async (value: string) => {
     if (!value.trim()) return
@@ -67,10 +69,15 @@ export default function Search() {
           </Text>
           <List
             dataSource={results}
-            renderItem={(item, index) => (
+            renderItem={(item) => (
               <Card style={{ marginBottom: 12 }} size="small">
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Text strong>{item.document_title}</Text>
+                  <a
+                    onClick={() => setViewDocId(item.document_id)}
+                    style={{ fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    {item.document_title}
+                  </a>
                   <Tag color="blue">相关度 {(item.score * 100).toFixed(1)}%</Tag>
                 </div>
                 {item.authors && <Text type="secondary">{item.authors}</Text>}
@@ -88,6 +95,12 @@ export default function Search() {
       ) : query ? (
         <Empty description="未找到相关结果" />
       ) : null}
+
+      <DocumentDetail
+        documentId={viewDocId}
+        open={!!viewDocId}
+        onClose={() => setViewDocId(null)}
+      />
     </div>
   )
 }

@@ -58,6 +58,15 @@ async def get_messages(
     user: User = Depends(require_permission(Permission.CHAT_READ)),
     db: AsyncSession = Depends(get_db),
 ):
+    session_result = await db.execute(
+        select(ChatSession).where(
+            ChatSession.id == UUID(session_id),
+            ChatSession.user_id == user.id,
+        )
+    )
+    if not session_result.scalar_one_or_none():
+        raise NotFoundException("对话")
+
     result = await db.execute(
         select(ChatMessage)
         .where(ChatMessage.session_id == UUID(session_id))
@@ -74,7 +83,10 @@ async def send_message(
     db: AsyncSession = Depends(get_db),
 ):
     session_result = await db.execute(
-        select(ChatSession).where(ChatSession.id == UUID(session_id))
+        select(ChatSession).where(
+            ChatSession.id == UUID(session_id),
+            ChatSession.user_id == user.id,
+        )
     )
     chat_session = session_result.scalar_one_or_none()
     if not chat_session:
@@ -88,33 +100,46 @@ async def send_message(
     db.add(user_msg)
     await db.commit()
 
+    # 提前读取 kb_ids，后面不再用 db
+    kb_ids = json.loads(chat_session.knowledge_base_ids)
+
     from meks.services.chat_service import generate_rag_response
+    from meks.models.base import async_session
 
     async def event_generator():
         full_response = ""
         source_chunks = []
-        async for chunk in generate_rag_response(
-            query=request.content,
-            knowledge_base_ids=json.loads(chat_session.knowledge_base_ids),
-            db=db,
-        ):
-            if chunk.get("type") == "sources":
-                source_chunks = chunk["data"]
-            elif chunk.get("type") == "token":
-                full_response += chunk["data"]
-                yield {"event": "token", "data": chunk["data"]}
-            elif chunk.get("type") == "done":
-                yield {"event": "done", "data": ""}
 
-        assistant_msg = ChatMessage(
-            session_id=UUID(session_id),
-            role=MessageRole.assistant,
-            content=full_response,
-            source_chunks=json.dumps(source_chunks) if source_chunks else None,
-        )
-        db.add(assistant_msg)
-        chat_session.message_count += 2
-        await db.commit()
+        # SSE 生成器用独立 session
+        async with async_session() as stream_db:
+            async for chunk in generate_rag_response(
+                query=request.content,
+                knowledge_base_ids=kb_ids,
+                db=stream_db,
+            ):
+                if chunk.get("type") == "sources":
+                    source_chunks = chunk["data"]
+                elif chunk.get("type") == "token":
+                    full_response += chunk["data"]
+                    yield {"event": "token", "data": chunk["data"]}
+                elif chunk.get("type") == "done":
+                    yield {"event": "done", "data": ""}
+
+        # 保存助手消息用独立 session
+        async with async_session() as save_db:
+            assistant_msg = ChatMessage(
+                session_id=UUID(session_id),
+                role=MessageRole.assistant,
+                content=full_response,
+                source_chunks=json.dumps(source_chunks) if source_chunks else None,
+            )
+            save_db.add(assistant_msg)
+            result = await save_db.execute(
+                select(ChatSession).where(ChatSession.id == UUID(session_id))
+            )
+            session_to_update = result.scalar_one()
+            session_to_update.message_count += 2
+            await save_db.commit()
 
     return EventSourceResponse(event_generator())
 
@@ -126,7 +151,10 @@ async def delete_session(
     db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(
-        select(ChatSession).where(ChatSession.id == UUID(session_id))
+        select(ChatSession).where(
+            ChatSession.id == UUID(session_id),
+            ChatSession.user_id == user.id,
+        )
     )
     session = result.scalar_one_or_none()
     if not session:

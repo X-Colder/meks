@@ -31,7 +31,7 @@ async def login(request: LoginRequest, db: AsyncSession = Depends(get_db)):
     if not user.is_active:
         raise UnauthorizedException("账户已被禁用")
 
-    user.last_login = datetime.now(timezone.utc)
+    user.last_login = datetime.utcnow()
     await db.commit()
 
     return TokenResponse(

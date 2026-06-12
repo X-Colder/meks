@@ -1,6 +1,14 @@
 from pymilvus import Collection
 
+from meks.vectordb.client import get_milvus_client, init_milvus
 from meks.vectordb.collections import EMBEDDING_DIM
+
+_loaded_collections: set[str] = set()
+
+
+def _ensure_connected():
+    if not get_milvus_client():
+        init_milvus()
 
 
 def insert_vectors(
@@ -12,6 +20,7 @@ def insert_vectors(
     embeddings: list[list[float]],
     contents: list[str],
 ):
+    _ensure_connected()
     collection = Collection(name=collection_name)
     data = [
         ids,
@@ -31,8 +40,12 @@ def search_vectors(
     top_k: int = 10,
     expr: str | None = None,
 ) -> list[dict]:
+    _ensure_connected()
     collection = Collection(name=collection_name)
-    collection.load()
+
+    if collection_name not in _loaded_collections:
+        collection.load()
+        _loaded_collections.add(collection_name)
 
     search_params = {"metric_type": "COSINE", "params": {"nprobe": 16}}
     results = collection.search(
@@ -59,3 +72,7 @@ def search_vectors(
 def delete_by_document(collection_name: str, document_id: str):
     collection = Collection(name=collection_name)
     collection.delete(expr=f'document_id == "{document_id}"')
+
+
+def invalidate_collection_cache(collection_name: str):
+    _loaded_collections.discard(collection_name)

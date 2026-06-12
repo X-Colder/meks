@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
-import { Input, Card, List, Select, Typography, Button, Space } from 'antd'
+import { Input, Card, List, Select, Typography, Button, Space, message } from 'antd'
 import { SendOutlined, PlusOutlined } from '@ant-design/icons'
-import { knowledgeBasesApi, KnowledgeBase } from '@/api/knowledgeBases'
+import { useAuthStore } from '@/stores/authStore'
+import { useKBStore } from '@/stores/knowledgeBaseStore'
 import apiClient from '@/api/client'
 
-const { Title, Text, Paragraph } = Typography
+const { Title, Text } = Typography
 
 interface Message {
   role: 'user' | 'assistant'
@@ -12,7 +13,7 @@ interface Message {
 }
 
 export default function Chat() {
-  const [kbs, setKbs] = useState<KnowledgeBase[]>([])
+  const { kbs, fetchKbs } = useKBStore()
   const [selectedKbs, setSelectedKbs] = useState<string[]>([])
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
@@ -21,8 +22,8 @@ export default function Chat() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    knowledgeBasesApi.list().then((res) => setKbs(res.data))
-  }, [])
+    fetchKbs()
+  }, [fetchKbs])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -45,14 +46,19 @@ export default function Chat() {
     setLoading(true)
 
     try {
+      const token = useAuthStore.getState().accessToken
       const response = await fetch(`/api/v1/chat/sessions/${sessionId}/messages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('meks-auth') ? JSON.parse(localStorage.getItem('meks-auth')!).state?.accessToken : ''}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ content: userMsg }),
       })
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
 
       const reader = response.body?.getReader()
       const decoder = new TextDecoder()
@@ -61,26 +67,41 @@ export default function Chat() {
       setMessages((prev) => [...prev, { role: 'assistant', content: '' }])
 
       if (reader) {
+        let currentEvent = ''
+        let buffer = ''
+
         while (true) {
           const { done, value } = await reader.read()
           if (done) break
-          const text = decoder.decode(value)
-          const lines = text.split('\n')
+
+          buffer += decoder.decode(value, { stream: true })
+          const lines = buffer.split('\n')
+          buffer = lines.pop() || ''
+
           for (const line of lines) {
-            if (line.startsWith('data: ')) {
+            if (line.startsWith('event: ')) {
+              currentEvent = line.slice(7).trim()
+            } else if (line.startsWith('data: ')) {
               const data = line.slice(6)
-              if (line.includes('event: token') || !line.includes('event:')) {
+              if (currentEvent === 'token') {
                 assistantContent += data
                 setMessages((prev) => {
                   const updated = [...prev]
-                  updated[updated.length - 1] = { role: 'assistant', content: assistantContent }
+                  updated[updated.length - 1] = {
+                    role: 'assistant',
+                    content: assistantContent,
+                  }
                   return updated
                 })
               }
+              currentEvent = ''
             }
           }
         }
       }
+    } catch (error) {
+      message.error('发送消息失败，请重试')
+      setMessages((prev) => prev.filter((m) => m.content !== ''))
     } finally {
       setLoading(false)
     }
@@ -101,7 +122,7 @@ export default function Chat() {
         </Button>
       </div>
 
-      <Card style={{ flex: 1, overflow: 'auto', marginBottom: 16 }} bodyStyle={{ padding: 16 }}>
+      <Card style={{ flex: 1, overflow: 'auto', marginBottom: 16 }} styles={{ body: { padding: 16 } }}>
         {messages.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 48, color: '#999' }}>
             <Title level={5} type="secondary">选择知识库并创建对话开始提问</Title>

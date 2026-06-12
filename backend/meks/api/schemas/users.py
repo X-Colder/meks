@@ -21,6 +21,8 @@ class UserUpdate(BaseModel):
 class UserListResponse(BaseModel):
     items: list["UserResponse"]
     total: int
+    page: int = 1
+    page_size: int = 20
 
 
 class UserResponse(BaseModel):
@@ -35,3 +37,7 @@ class UserResponse(BaseModel):
     last_login: str | None = None
 
     model_config = {"from_attributes": True}
+
+
+class PasswordResetRequest(BaseModel):
+    new_password: str

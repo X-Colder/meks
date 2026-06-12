@@ -24,6 +24,13 @@ class DocumentStatus(str, enum.Enum):
     failed = "failed"
 
 
+class ExtractionStatus(str, enum.Enum):
+    pending = "pending"
+    extracting = "extracting"
+    extracted = "extracted"
+    failed = "failed"
+
+
 class Document(Base):
     __tablename__ = "documents"
 
@@ -45,6 +52,10 @@ class Document(Base):
     )
     error_message: Mapped[str | None] = mapped_column(Text)
     chunk_count: Mapped[int] = mapped_column(Integer, default=0)
+
+    extraction_status: Mapped[ExtractionStatus | None] = mapped_column(
+        Enum(ExtractionStatus), nullable=True, default=None
+    )
 
     knowledge_base_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("knowledge_bases.id"))
     uploaded_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))

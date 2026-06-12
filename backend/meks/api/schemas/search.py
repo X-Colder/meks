@@ -5,7 +5,7 @@ class SearchRequest(BaseModel):
     query: str
     knowledge_base_ids: list[str] | None = None
     top_k: int = 10
-    min_score: float = 0.5
+    min_score: float = 0.2
 
 
 class SearchResultItem(BaseModel):

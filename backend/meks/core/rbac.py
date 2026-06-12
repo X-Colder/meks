@@ -17,6 +17,9 @@ class Permission(str, Enum):
     CHAT_CREATE = "chat:create"
     CHAT_READ = "chat:read"
     CHAT_DELETE = "chat:delete"
+    ANALYTICS_QUERY = "analytics:query"
+    SYNC_MANAGE = "sync:manage"
+    SYNC_VIEW = "sync:view"
     ADMIN_USERS = "admin:users"
     ADMIN_AUDIT = "admin:audit"
     ADMIN_SYSTEM = "admin:system"
@@ -38,6 +41,9 @@ ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         Permission.CHAT_CREATE,
         Permission.CHAT_READ,
         Permission.CHAT_DELETE,
+        Permission.ANALYTICS_QUERY,
+        Permission.SYNC_MANAGE,
+        Permission.SYNC_VIEW,
     },
     UserRole.doctor: {
         Permission.KB_READ,
@@ -47,6 +53,8 @@ ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         Permission.CHAT_CREATE,
         Permission.CHAT_READ,
         Permission.CHAT_DELETE,
+        Permission.ANALYTICS_QUERY,
+        Permission.SYNC_VIEW,
     },
     UserRole.viewer: {
         Permission.KB_READ,

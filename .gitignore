@@ -35,6 +35,10 @@ docker-compose.override.yml
 # Data volumes
 data/
 volumes/
+/models/
+/meks-offline-bundle/
+/test_data/
+/test-reports/
 
 # Test
 .coverage
@@ -43,3 +47,9 @@ htmlcov/
 
 # Alembic
 alembic/versions/*.pyc
+
+# Generated/local artifacts
+*.png
+*.log
+*.tsbuildinfo
+.claude/

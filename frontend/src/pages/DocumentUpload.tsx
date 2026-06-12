@@ -3,6 +3,7 @@ import { Upload, Select, Card, Table, Tag, Typography, message } from 'antd'
 import { InboxOutlined } from '@ant-design/icons'
 import { documentsApi, DocumentItem } from '@/api/documents'
 import { knowledgeBasesApi, KnowledgeBase } from '@/api/knowledgeBases'
+import DocumentDetail from '@/components/documents/DocumentDetail'
 
 const { Dragger } = Upload
 const { Title } = Typography
@@ -18,6 +19,10 @@ export default function DocumentUpload() {
   const [kbs, setKbs] = useState<KnowledgeBase[]>([])
   const [selectedKb, setSelectedKb] = useState<string>('')
   const [documents, setDocuments] = useState<DocumentItem[]>([])
+  const [docsTotal, setDocsTotal] = useState(0)
+  const [docsPage, setDocsPage] = useState(1)
+  const [drawerDocId, setDrawerDocId] = useState<string | null>(null)
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
   useEffect(() => {
     knowledgeBasesApi.list().then((res) => {
@@ -28,9 +33,12 @@ export default function DocumentUpload() {
 
   useEffect(() => {
     if (selectedKb) {
-      documentsApi.list({ knowledge_base_id: selectedKb }).then((res) => setDocuments(res.data.items))
+      documentsApi.list({ knowledge_base_id: selectedKb, page: docsPage, page_size: 10 }).then((res) => {
+        setDocuments(res.data.items)
+        setDocsTotal(res.data.total)
+      })
     }
-  }, [selectedKb])
+  }, [selectedKb, docsPage])
 
   const columns = [
     { title: '文件名', dataIndex: 'title', key: 'title' },
@@ -58,7 +66,7 @@ export default function DocumentUpload() {
           style={{ width: 300, marginBottom: 16 }}
           placeholder="选择目标知识库"
           value={selectedKb || undefined}
-          onChange={setSelectedKb}
+          onChange={(value) => { setSelectedKb(value); setDocsPage(1) }}
           options={kbs.map((kb) => ({ value: kb.id, label: kb.name }))}
         />
 
@@ -72,8 +80,11 @@ export default function DocumentUpload() {
               await documentsApi.upload(file as File, selectedKb)
               message.success(`${(file as File).name} 上传成功`)
               onSuccess?.({})
-              documentsApi.list({ knowledge_base_id: selectedKb }).then((res) =>
+              setDocsPage(1)
+              documentsApi.list({ knowledge_base_id: selectedKb, page: 1, page_size: 10 }).then((res) => {
                 setDocuments(res.data.items)
+                setDocsTotal(res.data.total)
+              }
               )
             } catch (err: any) {
               message.error(`上传失败: ${err.response?.data?.detail || '未知错误'}`)
@@ -90,8 +101,30 @@ export default function DocumentUpload() {
       </Card>
 
       <Card title="已上传文档">
-        <Table columns={columns} dataSource={documents} rowKey="id" size="small" />
+        <Table
+          columns={columns}
+          dataSource={documents}
+          rowKey="id"
+          size="small"
+          onRow={(record) => ({
+            onClick: () => { setDrawerDocId(record.id); setDrawerOpen(true) },
+            style: { cursor: 'pointer' },
+          })}
+          pagination={{
+            current: docsPage,
+            total: docsTotal,
+            pageSize: 10,
+            showSizeChanger: false,
+            onChange: setDocsPage,
+          }}
+        />
       </Card>
+
+      <DocumentDetail
+        documentId={drawerDocId}
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+      />
     </div>
   )
 }
