@@ -10,6 +10,8 @@ export interface DocumentItem {
   authors: string | null
   journal: string | null
   doi: string | null
+  abstract: string | null
+  publication_date: string | null
   chunk_count: number
   knowledge_base_id: string
   created_at: string

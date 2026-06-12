@@ -14,6 +14,9 @@ const Chat = lazy(() => import('@/pages/Chat'))
 const Analytics = lazy(() => import('@/pages/Analytics'))
 const SyncTasks = lazy(() => import('@/pages/SyncTasks'))
 const FrontierDiscovery = lazy(() => import('@/pages/FrontierDiscovery'))
+const LiteratureReading = lazy(() => import('@/pages/LiteratureReading'))
+const ResearchDesign = lazy(() => import('@/pages/ResearchDesign'))
+const GrantMaterials = lazy(() => import('@/pages/GrantMaterials'))
 const Preferences = lazy(() => import('@/pages/Preferences'))
 const PaperAnalysis = lazy(() => import('@/pages/PaperAnalysis'))
 const PaperEditor = lazy(() => import('@/pages/PaperEditor'))
@@ -95,6 +98,9 @@ export default function App() {
               <Route path="chat" element={<Chat />} />
               <Route path="analytics" element={<Analytics />} />
               <Route path="frontier" element={<FrontierDiscovery />} />
+              <Route path="literature-reading" element={<LiteratureReading />} />
+              <Route path="research-design" element={<ResearchDesign />} />
+              <Route path="grant-materials" element={<GrantMaterials />} />
               <Route path="sync-tasks" element={<SyncTasks />} />
               <Route path="preferences" element={<Preferences />} />
               <Route path="paper-analysis" element={<PaperAnalysis />} />

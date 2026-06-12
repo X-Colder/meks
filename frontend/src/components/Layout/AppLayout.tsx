@@ -15,6 +15,9 @@ import {
   SafetyCertificateOutlined,
   EditOutlined,
   BulbOutlined,
+  ReadOutlined,
+  ExperimentOutlined,
+  FileProtectOutlined,
 } from '@ant-design/icons'
 import { useAuthStore } from '@/stores/authStore'
 
@@ -29,13 +32,17 @@ export default function AppLayout() {
 
   const menuItems = [
     { key: '/', icon: <DashboardOutlined />, label: '工作台' },
-    { key: '/knowledge-bases', icon: <DatabaseOutlined />, label: '知识库' },
-    { key: '/upload', icon: <UploadOutlined />, label: '文档上传' },
-    { key: '/analytics', icon: <BarChartOutlined />, label: '统计分析' },
     { key: '/frontier', icon: <BulbOutlined />, label: '前沿发现' },
+    { key: '/knowledge-bases', icon: <DatabaseOutlined />, label: '文献知识库' },
+    { key: '/literature-reading', icon: <ReadOutlined />, label: '文献精读' },
+    { key: '/research-design', icon: <ExperimentOutlined />, label: '研究设计' },
+    { key: '/papers', icon: <EditOutlined />, label: '论文写作' },
+    { key: '/paper-analysis', icon: <SafetyCertificateOutlined />, label: '论文质控' },
+    { key: '/grant-materials', icon: <FileProtectOutlined />, label: '课题材料' },
+    { type: 'divider' as const },
+    { key: '/upload', icon: <UploadOutlined />, label: '文档上传' },
     { key: '/sync-tasks', icon: <SyncOutlined />, label: '同步任务' },
-    { key: '/paper-analysis', icon: <SafetyCertificateOutlined />, label: '论文鉴真' },
-    { key: '/papers', icon: <EditOutlined />, label: '论文协作' },
+    { key: '/analytics', icon: <BarChartOutlined />, label: '统计分析' },
     ...(user?.role === 'admin'
       ? [
           { type: 'divider' as const },
