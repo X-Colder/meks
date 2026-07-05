@@ -15,10 +15,9 @@ const Analytics = lazy(() => import('@/pages/Analytics'))
 const SyncTasks = lazy(() => import('@/pages/SyncTasks'))
 const FrontierDiscovery = lazy(() => import('@/pages/FrontierDiscovery'))
 const LiteratureReading = lazy(() => import('@/pages/LiteratureReading'))
-const ResearchDesign = lazy(() => import('@/pages/ResearchDesign'))
-const GrantMaterials = lazy(() => import('@/pages/GrantMaterials'))
+const GrantApplication = lazy(() => import('@/pages/GrantApplication'))
+const ClinicalDatasets = lazy(() => import('@/pages/ClinicalDatasets'))
 const Preferences = lazy(() => import('@/pages/Preferences'))
-const PaperAnalysis = lazy(() => import('@/pages/PaperAnalysis'))
 const PaperEditor = lazy(() => import('@/pages/PaperEditor'))
 const Users = lazy(() => import('@/pages/admin/Users'))
 const AuditLogs = lazy(() => import('@/pages/admin/AuditLogs'))
@@ -99,11 +98,13 @@ export default function App() {
               <Route path="analytics" element={<Analytics />} />
               <Route path="frontier" element={<FrontierDiscovery />} />
               <Route path="literature-reading" element={<LiteratureReading />} />
-              <Route path="research-design" element={<ResearchDesign />} />
-              <Route path="grant-materials" element={<GrantMaterials />} />
+              <Route path="grant-application" element={<GrantApplication />} />
+              <Route path="research-design" element={<Navigate to="/grant-application" replace />} />
+              <Route path="grant-materials" element={<Navigate to="/grant-application" replace />} />
+              <Route path="clinical-datasets" element={<ClinicalDatasets />} />
               <Route path="sync-tasks" element={<SyncTasks />} />
               <Route path="preferences" element={<Preferences />} />
-              <Route path="paper-analysis" element={<PaperAnalysis />} />
+              <Route path="paper-analysis" element={<Navigate to="/knowledge-bases" replace />} />
               <Route path="papers" element={<PaperEditor />} />
               <Route path="admin/users" element={<AdminRoute><Users /></AdminRoute>} />
               <Route path="admin/audit-logs" element={<AdminRoute><AuditLogs /></AdminRoute>} />

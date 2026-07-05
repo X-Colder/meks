@@ -11,6 +11,8 @@ from meks.models.sync_task import SyncTask, SourceType, SyncStatus
 from meks.models.paper_analysis import PaperAnalysis, AnalysisStatus, RiskLevel
 from meks.models.paper import Paper, PaperBlock, PaperStatus, BlockType
 from meks.models.focus_point import FocusPoint
+from meks.models.reading_card import PaperReadingCard
+from meks.models.clinical_dataset import ClinicalDataset
 
 __all__ = [
     "Base",
@@ -43,4 +45,6 @@ __all__ = [
     "PaperStatus",
     "BlockType",
     "FocusPoint",
+    "PaperReadingCard",
+    "ClinicalDataset",
 ]

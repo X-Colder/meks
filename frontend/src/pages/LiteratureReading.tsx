@@ -4,7 +4,7 @@ import { ReadOutlined, SafetyCertificateOutlined } from '@ant-design/icons'
 import ReactMarkdown from 'react-markdown'
 import { documentsApi, DocumentItem } from '@/api/documents'
 import { knowledgeBasesApi, KnowledgeBase } from '@/api/knowledgeBases'
-import { generateAIResponse } from '@/api/aiAssistant'
+import { readingCardsApi } from '@/api/readingCards'
 import DocumentDetail from '@/components/documents/DocumentDetail'
 import '@/styles/chat-markdown.css'
 
@@ -20,7 +20,10 @@ export default function LiteratureReading() {
   const [viewDocId, setViewDocId] = useState<string | null>(null)
   const [loadingDocs, setLoadingDocs] = useState(false)
   const [generating, setGenerating] = useState(false)
+  const [loadingCard, setLoadingCard] = useState(false)
   const [readingCard, setReadingCard] = useState('')
+  const [cardUpdatedAt, setCardUpdatedAt] = useState<string | null>(null)
+  const [cardQueued, setCardQueued] = useState(false)
 
   useEffect(() => {
     knowledgeBasesApi.list().then((res) => {
@@ -40,40 +43,58 @@ export default function LiteratureReading() {
       .finally(() => setLoadingDocs(false))
   }, [kbId, docPage])
 
+  useEffect(() => {
+    if (!selectedDoc) {
+      setReadingCard('')
+      setCardUpdatedAt(null)
+      setCardQueued(false)
+      return
+    }
+    setLoadingCard(true)
+    readingCardsApi.get(selectedDoc.id)
+      .then((res) => {
+        setReadingCard(res.data.content)
+        setCardUpdatedAt(res.data.updated_at)
+        setCardQueued(false)
+      })
+      .catch(() => {
+        setReadingCard('')
+        setCardUpdatedAt(null)
+      })
+      .finally(() => setLoadingCard(false))
+  }, [selectedDoc])
+
   const generateCard = async () => {
     if (!selectedDoc) {
       message.warning('请先选择一篇论文')
       return
     }
     setGenerating(true)
-    setReadingCard('')
     try {
-      const prompt = `请为医生生成一张医学论文精读卡片，要求结构化、可直接用于科研讨论。
-
-论文标题：${selectedDoc.title}
-作者：${selectedDoc.authors || 'Unknown'}
-期刊：${selectedDoc.journal || 'Unknown'}
-DOI/PMCID：${selectedDoc.doi || 'Unknown'}
-摘要：${selectedDoc.abstract || '暂无摘要'}
-
-请输出以下部分：
-1. 研究问题
-2. 研究设计
-3. 样本与数据来源
-4. 干预/暴露因素
-5. 主要结局指标
-6. 统计方法
-7. 主要发现
-8. 临床意义
-9. 局限性
-10. 是否值得精读与引用建议`
-      setReadingCard(await generateAIResponse(prompt))
+      await readingCardsApi.generate(selectedDoc.id)
+      setCardQueued(true)
+      message.success('精读卡片生成任务已提交')
     } catch {
-      message.error('生成精读卡片失败')
+      message.error('提交精读卡片生成任务失败')
     } finally {
       setGenerating(false)
     }
   }
+
+  useEffect(() => {
+    if (!selectedDoc || !cardQueued) return
+    const timer = setInterval(() => {
+      readingCardsApi.get(selectedDoc.id)
+        .then((res) => {
+          setReadingCard(res.data.content)
+          setCardUpdatedAt(res.data.updated_at)
+          setCardQueued(false)
+          clearInterval(timer)
+        })
+        .catch(() => {})
+    }, 3000)
+    return () => clearInterval(timer)
+  }, [selectedDoc, cardQueued])
 
   return (
     <div>
@@ -90,7 +111,9 @@ DOI/PMCID：${selectedDoc.doi || 'Unknown'}
                 onChange={(value) => { setKbId(value); setDocPage(1); setSelectedDoc(null); setReadingCard('') }}
                 options={kbs.map((kb) => ({ value: kb.id, label: kb.name }))}
               />
-              <Button type="primary" icon={<SafetyCertificateOutlined />} loading={generating} onClick={generateCard}>生成精读卡片</Button>
+              <Button type="primary" icon={<SafetyCertificateOutlined />} loading={generating} onClick={generateCard}>
+                {readingCard ? '重新生成' : '生成精读卡片'}
+              </Button>
             </Space>
             <Table
               rowKey="id"
@@ -110,9 +133,12 @@ DOI/PMCID：${selectedDoc.doi || 'Unknown'}
         </Col>
         <Col xs={24} lg={12}>
           <Card size="small" title={selectedDoc ? `精读卡片：${selectedDoc.title}` : '精读卡片'}>
-            <Spin spinning={generating}>
+            {cardUpdatedAt && <Text type="secondary">已保存：{cardUpdatedAt.slice(0, 19).replace('T', ' ')}</Text>}
+            <Spin spinning={generating || loadingCard}>
               {readingCard ? (
                 <div className="chat-markdown"><ReactMarkdown>{readingCard}</ReactMarkdown></div>
+              ) : cardQueued ? (
+                <Empty description="精读卡片正在后台生成，请稍候..." />
               ) : (
                 <Empty description="选择论文后生成精读卡片" />
               )}

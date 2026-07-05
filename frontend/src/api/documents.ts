@@ -16,6 +16,9 @@ export interface DocumentItem {
   knowledge_base_id: string
   created_at: string
   error_message: string | null
+  analysis_status: string | null
+  analysis_risk_score: number | null
+  risk_level: string | null
 }
 
 export interface DocumentListResponse {

@@ -12,12 +12,11 @@ import {
   BarChartOutlined,
   SyncOutlined,
   SettingOutlined,
-  SafetyCertificateOutlined,
   EditOutlined,
   BulbOutlined,
   ReadOutlined,
-  ExperimentOutlined,
   FileProtectOutlined,
+  TableOutlined,
 } from '@ant-design/icons'
 import { useAuthStore } from '@/stores/authStore'
 
@@ -35,10 +34,9 @@ export default function AppLayout() {
     { key: '/frontier', icon: <BulbOutlined />, label: '前沿发现' },
     { key: '/knowledge-bases', icon: <DatabaseOutlined />, label: '文献知识库' },
     { key: '/literature-reading', icon: <ReadOutlined />, label: '文献精读' },
-    { key: '/research-design', icon: <ExperimentOutlined />, label: '研究设计' },
+    { key: '/grant-application', icon: <FileProtectOutlined />, label: '课题申报' },
     { key: '/papers', icon: <EditOutlined />, label: '论文写作' },
-    { key: '/paper-analysis', icon: <SafetyCertificateOutlined />, label: '论文质控' },
-    { key: '/grant-materials', icon: <FileProtectOutlined />, label: '课题材料' },
+    { key: '/clinical-datasets', icon: <TableOutlined />, label: '病例数据集' },
     { type: 'divider' as const },
     { key: '/upload', icon: <UploadOutlined />, label: '文档上传' },
     { key: '/sync-tasks', icon: <SyncOutlined />, label: '同步任务' },

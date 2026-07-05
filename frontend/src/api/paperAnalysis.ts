@@ -31,9 +31,14 @@ export interface PaperAnalysisResult {
   updated_at: string
 }
 
+export interface PaperAnalysisTriggerResponse {
+  detail: string
+  document_id: string
+}
+
 export const paperAnalysisApi = {
   trigger: (documentId: string) =>
-    apiClient.post<PaperAnalysisResult>(`/paper-analysis/${documentId}`),
+    apiClient.post<PaperAnalysisTriggerResponse>(`/paper-analysis/${documentId}`),
   get: (documentId: string) =>
     apiClient.get<PaperAnalysisResult>(`/paper-analysis/${documentId}`),
 }

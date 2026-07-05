@@ -1,12 +1,14 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
-import { Card, Button, Modal, Form, Input, Select, List, Tag, Typography, message, Radio, Checkbox, Table, Tabs, Spin } from 'antd'
-import { PlusOutlined, DatabaseOutlined, ArrowLeftOutlined, SearchOutlined, MessageOutlined, ReloadOutlined } from '@ant-design/icons'
+import { Card, Button, Modal, Form, Input, Select, List, Tag, Typography, message, Radio, Checkbox, Table, Tabs, Spin, Space } from 'antd'
+import { PlusOutlined, DatabaseOutlined, ArrowLeftOutlined, SearchOutlined, MessageOutlined, ReloadOutlined, SafetyCertificateOutlined } from '@ant-design/icons'
 import ReactMarkdown from 'react-markdown'
 import '@/styles/chat-markdown.css'
 import { knowledgeBasesApi, KnowledgeBase } from '@/api/knowledgeBases'
 import { documentsApi, DocumentItem } from '@/api/documents'
 import { searchApi, SearchResultItem } from '@/api/search'
 import DocumentDetail from '@/components/documents/DocumentDetail'
+import PaperAnalysisDrawer from '@/components/papers/PaperAnalysisDrawer'
+import { PaperAnalysisResult } from '@/api/paperAnalysis'
 import type { ColumnsType } from 'antd/es/table'
 
 const medicalRecordCategories = ['患者信息', '就诊信息', '诊断信息', '治疗信息', '转归信息', '病史']
@@ -21,6 +23,8 @@ function KBDetail({ kb, onBack }: { kb: KnowledgeBase; onBack: () => void }) {
   const [docsTotal, setDocsTotal] = useState(0)
   const [docsPage, setDocsPage] = useState(1)
   const [viewDocId, setViewDocId] = useState<string | null>(null)
+  const [analysisDoc, setAnalysisDoc] = useState<DocumentItem | null>(null)
+  const [analysisOpen, setAnalysisOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<SearchResultItem[]>([])
   const [searchLoading, setSearchLoading] = useState(false)
@@ -209,19 +213,59 @@ function KBDetail({ kb, onBack }: { kb: KnowledgeBase; onBack: () => void }) {
     fetchDocuments()
   }
 
+  const handleOpenAnalysis = (doc: DocumentItem) => {
+    setAnalysisDoc(doc)
+    setAnalysisOpen(true)
+  }
+
+  const handleAnalysisUpdated = (documentId: string, result: PaperAnalysisResult) => {
+    setDocuments((prev) => prev.map((doc) => (
+      doc.id === documentId
+        ? {
+            ...doc,
+            analysis_status: result.status,
+            analysis_risk_score: result.overall_risk_score,
+            risk_level: result.risk_level,
+          }
+        : doc
+    )))
+  }
+
   const docColumns: ColumnsType<DocumentItem> = [
     { title: '论文标题', dataIndex: 'title', ellipsis: true, render: (title: string, record) => <a onClick={() => setViewDocId(record.id)} style={{ cursor: 'pointer' }}>{title}</a> },
     { title: '类型', dataIndex: 'file_type', width: 60, render: (v: string) => <Tag>{v.toUpperCase()}</Tag> },
     { title: '状态', dataIndex: 'status', width: 80, render: (v: string) => <Tag color={v === 'indexed' ? 'success' : v === 'failed' ? 'error' : 'default'}>{v}</Tag> },
+    {
+      title: '鉴真',
+      key: 'analysis',
+      width: 120,
+      render: (_: unknown, record) => {
+        const done = record.analysis_status === 'completed'
+        const running = record.analysis_status === 'pending' || record.analysis_status === 'analyzing'
+        return (
+          <Button
+            size="small"
+            icon={<SafetyCertificateOutlined style={{ color: done ? '#52c41a' : undefined }} />}
+            disabled={record.status !== 'indexed'}
+            onClick={() => handleOpenAnalysis(record)}
+            style={done ? { color: '#389e0d', borderColor: '#52c41a' } : undefined}
+          >
+            {done ? '鉴真完成' : running ? '生成中' : '论文鉴真'}
+          </Button>
+        )
+      },
+    },
     { title: '作者', dataIndex: 'authors', ellipsis: true, width: 180 },
     {
       title: '操作',
       key: 'actions',
       width: 100,
       render: (_: unknown, record) => (
-        record.status !== 'indexed'
-          ? <Button size="small" icon={<ReloadOutlined />} onClick={() => handleReindexDoc(record)}>重试</Button>
-          : null
+        <Space size={4}>
+          {record.status !== 'indexed' && (
+            <Button size="small" icon={<ReloadOutlined />} onClick={() => handleReindexDoc(record)}>重试</Button>
+          )}
+        </Space>
       ),
     },
   ]
@@ -316,6 +360,14 @@ function KBDetail({ kb, onBack }: { kb: KnowledgeBase; onBack: () => void }) {
       </div>
 
       <DocumentDetail documentId={viewDocId} open={!!viewDocId} onClose={() => setViewDocId(null)} />
+      <PaperAnalysisDrawer
+        open={analysisOpen}
+        documentId={analysisDoc?.id || null}
+        title={analysisDoc?.title || ''}
+        initialStatus={analysisDoc?.analysis_status}
+        onClose={() => setAnalysisOpen(false)}
+        onStatusChange={handleAnalysisUpdated}
+      />
     </div>
   )
 }

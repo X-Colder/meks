@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from meks.api.v1 import auth, documents, knowledge_bases, search, chat, users, system, analytics, audit_logs, sync_tasks, medical_records, paper_analysis, papers, frontier
+from meks.api.v1 import auth, documents, knowledge_bases, search, chat, users, system, analytics, audit_logs, sync_tasks, medical_records, paper_analysis, papers, frontier, reading_cards, clinical_datasets
 
 api_router = APIRouter()
 
@@ -18,3 +18,5 @@ api_router.include_router(medical_records.router, prefix="/medical-records", tag
 api_router.include_router(paper_analysis.router, prefix="/paper-analysis", tags=["论文鉴真"])
 api_router.include_router(papers.router, prefix="/papers", tags=["论文协作"])
 api_router.include_router(frontier.router, prefix="/frontier", tags=["前沿发现"])
+api_router.include_router(reading_cards.router, prefix="/reading-cards", tags=["文献精读"])
+api_router.include_router(clinical_datasets.router, prefix="/clinical-datasets", tags=["病例数据集"])

@@ -25,6 +25,7 @@ from meks.models.document import Document, DocumentStatus
 from meks.models.focus_point import FocusPoint
 from meks.models.knowledge_base import KnowledgeBase
 from meks.models.paper_analysis import PaperAnalysis
+from meks.models.reading_card import PaperReadingCard
 from meks.models.sync_task import SyncTask
 from meks.models.user import User
 
@@ -34,6 +35,11 @@ STOPWORDS = {
     "the", "and", "for", "with", "from", "that", "this", "into", "using", "study",
     "research", "analysis", "cardiovascular", "disease", "diseases", "patient",
     "patients", "clinical", "based", "effect", "effects", "risk", "among",
+    "were", "was", "are", "is", "been", "being", "have", "has", "had", "not",
+    "than", "then", "these", "those", "their", "there", "which", "while",
+    "between", "after", "before", "during", "because", "associated",
+    "significant", "significantly", "results", "methods", "background",
+    "conclusion", "objective", "objectives",
 }
 
 
@@ -155,13 +161,75 @@ def _score_document(doc: Document) -> tuple[int, list[str], str]:
 
 
 def _trend_keywords(docs: list[Document]) -> list[FrontierTrend]:
+    return _trend_keywords_from_texts([f"{doc.title} {doc.abstract or ''}" for doc in docs])
+
+
+def _trend_keywords_from_texts(texts: list[str]) -> list[FrontierTrend]:
     counter: Counter[str] = Counter()
-    for doc in docs:
-        text = f"{doc.title} {doc.abstract or ''}".lower()
+    phrase_patterns = [
+        "heart failure", "atrial fibrillation", "myocardial infarction",
+        "coronary artery", "cardiovascular risk", "blood pressure",
+        "machine learning", "deep learning", "risk prediction",
+        "inflammatory marker", "inflammation", "biomarker", "metabolomics",
+        "proteomics", "single-cell", "multi-omics", "mortality",
+        "prognosis", "rehospitalization", "recurrence", "intervention",
+        "randomized trial", "systematic review", "meta-analysis",
+    ]
+    for raw in texts:
+        text = raw.lower()
+        for phrase in phrase_patterns:
+            if phrase in text:
+                counter[phrase] += 3
         for word in re.findall(r"[a-z][a-z-]{3,}", text):
-            if word not in STOPWORDS:
+            if word not in STOPWORDS and not word.endswith("ing"):
                 counter[word] += 1
     return [FrontierTrend(keyword=word, count=count) for word, count in counter.most_common(12)]
+
+
+def _parse_trend_response(raw: str) -> list[FrontierTrend]:
+    raw = raw.strip()
+    match = re.search(r"\[[\s\S]*\]", raw)
+    if not match:
+        return []
+    try:
+        data = json.loads(match.group())
+    except json.JSONDecodeError:
+        return []
+
+    trends: list[FrontierTrend] = []
+    for item in data:
+        if not isinstance(item, dict):
+            continue
+        keyword = str(item.get("keyword") or item.get("topic") or "").strip()
+        if not keyword:
+            continue
+        try:
+            count = int(item.get("count") or item.get("score") or item.get("heat") or 1)
+        except (TypeError, ValueError):
+            count = 1
+        trends.append(FrontierTrend(keyword=keyword[:40], count=max(1, min(10, count))))
+    return trends[:12]
+
+
+async def _semantic_trends(db: AsyncSession, docs: list[Document]) -> list[FrontierTrend]:
+    if not docs:
+        return []
+
+    doc_ids = [doc.id for doc in docs[:30]]
+    cards_result = await db.execute(
+        select(PaperReadingCard).where(PaperReadingCard.document_id.in_(doc_ids))
+    )
+    card_by_doc = {card.document_id: card for card in cards_result.scalars().all()}
+
+    snippets: list[str] = []
+    for doc in docs[:30]:
+        card = card_by_doc.get(doc.id)
+        if card:
+            snippets.append(f"{doc.title}\n{card.content[:1200]}")
+        else:
+            snippets.append(f"{doc.title}\n{doc.abstract or ''}")
+
+    return _trend_keywords_from_texts(snippets)
 
 
 def _relevance_score(doc: Document, query: str | None) -> int:
@@ -352,6 +420,7 @@ async def list_frontier(
                     source_type=source_task.source_type.value if source_task else None,
                     frontier_score=score,
                     relevance_score=rel_score,
+                    analysis_status=analysis.status.value if analysis else None,
                     analysis_risk_score=analysis.overall_risk_score if analysis else None,
                     risk_level=analysis.risk_level.value if analysis and analysis.risk_level else None,
                     reasons=reasons,
@@ -368,6 +437,6 @@ async def list_frontier(
     return FrontierResponse(
         topics=topics,
         papers=papers,
-        trends=_trend_keywords(trend_docs),
+        trends=await _semantic_trends(db, trend_docs),
         total=len(papers),
     )

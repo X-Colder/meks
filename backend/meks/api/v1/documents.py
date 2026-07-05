@@ -12,6 +12,7 @@ from meks.dependencies import get_current_user, require_permission
 from meks.models.base import get_db
 from meks.models.document import Document, DocumentStatus, FileType
 from meks.models.knowledge_base import KnowledgeBase
+from meks.models.paper_analysis import PaperAnalysis
 from meks.models.user import User
 
 router = APIRouter()
@@ -88,6 +89,17 @@ async def list_documents(
     query = query.offset((page - 1) * page_size).limit(page_size).order_by(Document.created_at.desc())
     result = await db.execute(query)
     items = result.scalars().all()
+
+    if items:
+        analysis_result = await db.execute(
+            select(PaperAnalysis).where(PaperAnalysis.document_id.in_([item.id for item in items]))
+        )
+        analysis_by_doc = {item.document_id: item for item in analysis_result.scalars().all()}
+        for item in items:
+            analysis = analysis_by_doc.get(item.id)
+            item.analysis_status = analysis.status.value if analysis else None
+            item.analysis_risk_score = analysis.overall_risk_score if analysis else None
+            item.risk_level = analysis.risk_level.value if analysis and analysis.risk_level else None
 
     return DocumentListResponse(items=items, total=total, page=page, page_size=page_size)
 

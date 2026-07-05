@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Badge, Button, Card, Col, Empty, Form, Input, List, Modal, Pagination, Progress, Row, Select, Space, Spin, Switch, Tag, Typography, message } from 'antd'
+import { Badge, Button, Card, Col, Empty, Form, Input, List, Modal, Pagination, Progress, Row, Select, Space, Spin, Switch, Tag, Tooltip, Typography, message } from 'antd'
 import { BulbOutlined, FileTextOutlined, PlusOutlined, ReloadOutlined, SafetyCertificateOutlined, SearchOutlined, SyncOutlined } from '@ant-design/icons'
 import { frontierApi, FocusPoint, FrontierPaper } from '@/api/frontier'
 import { knowledgeBasesApi, KnowledgeBase } from '@/api/knowledgeBases'
-import { paperAnalysisApi } from '@/api/paperAnalysis'
 import DocumentDetail from '@/components/documents/DocumentDetail'
+import PaperAnalysisDrawer from '@/components/papers/PaperAnalysisDrawer'
+import { PaperAnalysisResult } from '@/api/paperAnalysis'
 
 const { Title, Text, Paragraph } = Typography
 
@@ -55,17 +56,23 @@ function FocusCard({ focus, active, onClick }: { focus: FocusPoint; active: bool
 }
 
 function PaperItem({ paper, onOpen, onAnalyze }: { paper: FrontierPaper; onOpen: () => void; onAnalyze: () => void }) {
+  const analysisDone = paper.analysis_status === 'completed'
   return (
     <Card size="small" style={{ marginBottom: 10 }}>
       <Row gutter={16} align="top">
         <Col flex="84px">
-          <Progress
-            type="circle"
-            percent={paper.frontier_score}
-            size={64}
-            strokeColor={scoreColor(paper.frontier_score)}
-            format={(value) => <span style={{ color: scoreColor(paper.frontier_score), fontSize: 14 }}>{value}</span>}
-          />
+          <Tooltip title="前沿指数：系统对这篇论文的推荐优先级评分，分数越高越值得优先查看。真实性风险是单独指标，风险值越低越可信。">
+            <div style={{ width: 76, textAlign: 'center' }}>
+              <Progress
+                type="circle"
+                percent={paper.frontier_score}
+                size={64}
+                strokeColor={scoreColor(paper.frontier_score)}
+                format={(value) => <span style={{ color: scoreColor(paper.frontier_score), fontSize: 14 }}>{value}</span>}
+              />
+              <div style={{ marginTop: 4, color: '#595959', fontSize: 12, lineHeight: '16px' }}>前沿指数</div>
+            </div>
+          </Tooltip>
         </Col>
         <Col flex="auto">
           <Space direction="vertical" size={6} style={{ width: '100%' }}>
@@ -90,7 +97,14 @@ function PaperItem({ paper, onOpen, onAnalyze }: { paper: FrontierPaper; onOpen:
             </Space>
             <Space>
               <Button size="small" icon={<FileTextOutlined />} onClick={onOpen}>查看论文</Button>
-              <Button size="small" icon={<SafetyCertificateOutlined />} onClick={onAnalyze}>论文鉴真</Button>
+              <Button
+                size="small"
+                icon={<SafetyCertificateOutlined style={{ color: analysisDone ? '#52c41a' : undefined }} />}
+                onClick={onAnalyze}
+                style={analysisDone ? { color: '#389e0d', borderColor: '#52c41a' } : undefined}
+              >
+                {analysisDone ? '鉴真完成' : '论文鉴真'}
+              </Button>
             </Space>
           </Space>
         </Col>
@@ -112,6 +126,8 @@ export default function FrontierDiscovery() {
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(false)
   const [viewDocId, setViewDocId] = useState<string | null>(null)
+  const [analysisOpen, setAnalysisOpen] = useState(false)
+  const [analysisPaper, setAnalysisPaper] = useState<FrontierPaper | null>(null)
   const [focusOpen, setFocusOpen] = useState(false)
   const [kbFocusOpen, setKbFocusOpen] = useState(false)
   const [focusForm] = Form.useForm()
@@ -158,7 +174,7 @@ export default function FrontierDiscovery() {
     })
     return [...filtered].sort((a, b) => {
       if (sortBy === 'risk') {
-        return (b.analysis_risk_score ?? -1) - (a.analysis_risk_score ?? -1)
+        return (a.analysis_risk_score ?? Number.POSITIVE_INFINITY) - (b.analysis_risk_score ?? Number.POSITIVE_INFINITY)
       }
       if (sortBy === 'relevance') {
         return b.relevance_score - a.relevance_score
@@ -168,22 +184,6 @@ export default function FrontierDiscovery() {
       return bTime - aTime
     })
   }, [keyword, papers, focusPoints, activeFocusId, sortBy])
-
-  const activeTrends = useMemo(() => {
-    const stopwords = new Set(['the', 'and', 'for', 'with', 'from', 'that', 'this', 'into', 'using', 'study', 'research', 'analysis', 'patient', 'patients', 'clinical'])
-    const counts = new Map<string, number>()
-    filteredPapers.forEach((paper) => {
-      const text = `${paper.title} ${paper.abstract || ''}`.toLowerCase()
-      const matches = text.match(/[a-z][a-z-]{3,}/g) || []
-      matches.forEach((word) => {
-        if (!stopwords.has(word)) counts.set(word, (counts.get(word) || 0) + 1)
-      })
-    })
-    return [...counts.entries()]
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 12)
-      .map(([keyword, count]) => ({ keyword, count }))
-  }, [filteredPapers])
 
   const pageSize = 10
   const pagedPapers = filteredPapers.slice((page - 1) * pageSize, page * pageSize)
@@ -279,9 +279,22 @@ export default function FrontierDiscovery() {
     )
   }, [activeFocus, papers])
 
-  const handleAnalyze = async (paper: FrontierPaper) => {
-    await paperAnalysisApi.trigger(paper.document_id)
-    setViewDocId(paper.document_id)
+  const handleAnalyze = (paper: FrontierPaper) => {
+    setAnalysisOpen(true)
+    setAnalysisPaper(paper)
+  }
+
+  const handleAnalysisUpdated = (documentId: string, result: PaperAnalysisResult) => {
+    setPapers((prev) => prev.map((paper) => (
+      paper.document_id === documentId
+        ? {
+            ...paper,
+            analysis_status: result.status,
+            analysis_risk_score: result.overall_risk_score,
+            risk_level: result.risk_level,
+          }
+        : paper
+    )))
   }
 
   return (
@@ -359,7 +372,7 @@ export default function FrontierDiscovery() {
                 style={{ width: 150 }}
                 options={[
                   { value: 'time', label: '按时间排序' },
-                  { value: 'risk', label: '按真实性风险' },
+                  { value: 'risk', label: '真实性风险低优先' },
                   { value: 'relevance', label: '按相关性' },
                 ]}
               />
@@ -393,7 +406,7 @@ export default function FrontierDiscovery() {
         <Col xs={24} lg={6}>
           <Card size="small" title="趋势关键词" style={{ marginBottom: 16 }}>
             <Space wrap>
-              {(activeFocus ? activeTrends : trends).map((trend) => (
+              {trends.map((trend) => (
                 <Tag key={trend.keyword} color="blue">{trend.keyword} · {trend.count}</Tag>
               ))}
             </Space>
@@ -409,7 +422,8 @@ export default function FrontierDiscovery() {
           )}
           <Card size="small" title="前沿指数说明">
             <Space direction="vertical" size={8}>
-              <Text><SyncOutlined /> 近期发表或近期导入会提高分数。</Text>
+              <Text><SyncOutlined /> 前沿指数表示推荐优先级，不等同于真实性评分。</Text>
+              <Text><SafetyCertificateOutlined /> 真实性风险是独立指标，数值越低越可信。</Text>
               <Text><SafetyCertificateOutlined /> RCT、Meta-analysis、系统综述等证据类型更靠前。</Text>
               <Text><SearchOutlined /> 包含 AI、omics、biomarker 等前沿方法会加权。</Text>
               <Text><FileTextOutlined /> 已索引论文更适合直接问答和精读。</Text>
@@ -419,6 +433,14 @@ export default function FrontierDiscovery() {
       </Row>
 
       <DocumentDetail documentId={viewDocId} open={!!viewDocId} onClose={() => setViewDocId(null)} />
+      <PaperAnalysisDrawer
+        open={analysisOpen}
+        documentId={analysisPaper?.document_id || null}
+        title={analysisPaper?.title || ''}
+        initialStatus={analysisPaper?.analysis_status}
+        onClose={() => setAnalysisOpen(false)}
+        onStatusChange={handleAnalysisUpdated}
+      />
       <Modal title="新增关注点" open={focusOpen} onCancel={() => setFocusOpen(false)} onOk={() => focusForm.submit()}>
         <Form form={focusForm} layout="vertical" onFinish={createFocus} initialValues={{ source_type: 'pmc', max_results: 50, cron_expr: '0 8 * * *', auto_sync: true }}>
           <Form.Item name="name" label="关注点名称" rules={[{ required: true }]}><Input placeholder="例如：心血管代谢与炎症" /></Form.Item>

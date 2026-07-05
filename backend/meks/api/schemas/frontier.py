@@ -56,6 +56,7 @@ class FrontierPaper(BaseModel):
     source_type: str | None
     frontier_score: int
     relevance_score: int
+    analysis_status: str | None = None
     analysis_risk_score: int | None = None
     risk_level: str | None = None
     reasons: list[str]

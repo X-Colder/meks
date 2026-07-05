@@ -28,6 +28,7 @@ export interface FrontierPaper {
   source_type: string | null
   frontier_score: number
   relevance_score: number
+  analysis_status: string | null
   analysis_risk_score: number | null
   risk_level: string | null
   reasons: string[]

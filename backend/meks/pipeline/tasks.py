@@ -28,6 +28,14 @@ celery_app.conf.beat_schedule = {
         "task": "meks.pipeline.tasks.retry_stale_indexing_documents",
         "schedule": 600.0,
     },
+    "generate-priority-reading-cards-every-five-minutes": {
+        "task": "meks.pipeline.tasks.generate_priority_reading_cards",
+        "schedule": 300.0,
+    },
+    "analyze-priority-papers-every-five-minutes": {
+        "task": "meks.pipeline.tasks.analyze_priority_papers",
+        "schedule": 300.0,
+    },
 }
 
 
@@ -128,6 +136,7 @@ async def _process_document_async(document_id: str):
                 await db.commit()
 
                 analyze_paper_task.delay(str(doc.id), None)
+                generate_reading_card_task.delay(str(doc.id), None)
 
                 await _try_extract_medical_record(db, doc, text)
 
@@ -371,6 +380,106 @@ async def _retry_stale_indexing_documents():
 @celery_app.task(bind=True, max_retries=2, default_retry_delay=60)
 def analyze_paper_task(self, document_id: str, user_id: str | None = None):
     run_async(_analyze_paper_async(document_id, user_id))
+
+
+@celery_app.task
+def analyze_priority_papers():
+    run_async(_analyze_priority_papers_async())
+
+
+async def _analyze_priority_papers_async():
+    from sqlalchemy import or_, select
+    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+    from meks.config import settings
+    from meks.models.document import Document, DocumentStatus
+    from meks.models.paper_analysis import AnalysisStatus, PaperAnalysis
+
+    engine = create_async_engine(settings.database_url, pool_pre_ping=True)
+    session_factory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
+    async with session_factory() as db:
+        query = (
+            select(Document.id)
+            .outerjoin(PaperAnalysis, PaperAnalysis.document_id == Document.id)
+            .where(
+                Document.status == DocumentStatus.indexed,
+                or_(
+                    PaperAnalysis.id.is_(None),
+                    PaperAnalysis.status == AnalysisStatus.failed,
+                ),
+            )
+            .order_by(
+                Document.publication_date.desc().nullslast(),
+                Document.created_at.desc(),
+            )
+            .limit(20)
+        )
+        result = await db.execute(query)
+        for doc_id in result.scalars().all():
+            analyze_paper_task.delay(str(doc_id), None)
+
+    await engine.dispose()
+
+
+@celery_app.task(bind=True, max_retries=2, default_retry_delay=60)
+def generate_reading_card_task(self, document_id: str, user_id: str | None = None):
+    try:
+        run_async(_generate_reading_card_async(document_id, user_id))
+    except Exception as exc:
+        if self.request.retries < self.max_retries:
+            raise self.retry(exc=exc, countdown=60 * (2 ** self.request.retries))
+        raise
+
+
+async def _generate_reading_card_async(document_id: str, user_id: str | None):
+    from uuid import UUID
+    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+    from meks.config import settings
+    from meks.services.reading_card_service import build_reading_card
+
+    engine = create_async_engine(settings.database_url, pool_pre_ping=True)
+    session_factory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    async with session_factory() as db:
+        await build_reading_card(UUID(document_id), db, UUID(user_id) if user_id else None)
+    await engine.dispose()
+
+
+@celery_app.task
+def generate_priority_reading_cards():
+    run_async(_generate_priority_reading_cards_async())
+
+
+async def _generate_priority_reading_cards_async():
+    from sqlalchemy import func, select
+    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+    from meks.config import settings
+    from meks.models.document import Document, DocumentStatus
+    from meks.models.paper_analysis import AnalysisStatus, PaperAnalysis
+    from meks.models.reading_card import PaperReadingCard
+
+    engine = create_async_engine(settings.database_url, pool_pre_ping=True)
+    session_factory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    async with session_factory() as db:
+        existing = select(PaperReadingCard.document_id)
+        query = (
+            select(Document.id)
+            .outerjoin(PaperAnalysis, PaperAnalysis.document_id == Document.id)
+            .where(
+                Document.status == DocumentStatus.indexed,
+                Document.id.not_in(existing),
+            )
+            .order_by(
+                PaperAnalysis.status == AnalysisStatus.completed,
+                PaperAnalysis.overall_risk_score.asc().nullslast(),
+                Document.publication_date.desc().nullslast(),
+                Document.created_at.desc(),
+            )
+            .limit(10)
+        )
+        result = await db.execute(query)
+        for doc_id in result.scalars().all():
+            generate_reading_card_task.delay(str(doc_id), None)
+    await engine.dispose()
 
 
 async def _analyze_paper_async(document_id: str, user_id: str | None):

@@ -227,7 +227,7 @@ def theme_xml() -> str:
 def core_props() -> str:
     return '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-<dc:title>MEKS 医生科研 AI 知识库系统路演材料</dc:title><dc:creator>MEKS</dc:creator><cp:lastModifiedBy>MEKS</cp:lastModifiedBy></cp:coreProperties>'''
+<dc:title>MEKS 医生科研 AI 工作台产品价值说明</dc:title><dc:creator>MEKS</dc:creator><cp:lastModifiedBy>MEKS</cp:lastModifiedBy></cp:coreProperties>'''
 
 
 def app_props(n: int) -> str:
@@ -241,12 +241,12 @@ def build_deck() -> Deck:
     d.add_slide([
         shape(2, 0.65, 0.55, 3.3, 0.52, "MEKS", fill="1677FF", prst="roundRect", size=24, color="FFFFFF", bold=True, align="ctr"),
         shape(3, 0.65, 1.45, 8.9, 1.35, "医生科研与医学知识工作台", fill=None, size=38, color="111827", bold=True),
-        shape(4, 0.72, 2.9, 8.8, 0.6, "从前沿发现、文献精读、研究设计到论文写作的一体化 AI 知识库系统", fill=None, size=18, color="374151"),
+        shape(4, 0.72, 2.9, 9.2, 0.6, "让 AI 主动完成文献发现、可信度判断、科研设计和写作辅助，医生保留判断权与编辑权", fill=None, size=18, color="374151"),
         shape(5, 0.8, 4.25, 2.2, 0.78, "前沿追踪", fill="EAF2FF", line="BBD6FF", size=16, bold=True, align="ctr"),
         shape(6, 3.25, 4.25, 2.2, 0.78, "科研设计", fill="ECFDF5", line="A7F3D0", size=16, bold=True, align="ctr"),
         shape(7, 5.7, 4.25, 2.2, 0.78, "论文写作", fill="FFF7ED", line="FED7AA", size=16, bold=True, align="ctr"),
         shape(8, 8.15, 4.25, 2.2, 0.78, "安全私有化", fill="F5F3FF", line="DDD6FE", size=16, bold=True, align="ctr"),
-        shape(9, 9.65, 0.55, 2.5, 4.9, "AI\n医学文献\n科研数据\n论文草稿", fill="FFFFFF", line="E5E7EB", size=22, bold=True, align="ctr"),
+        shape(9, 9.65, 0.55, 2.5, 4.9, "AI\n医学文献\n病例数据\n论文草稿", fill="FFFFFF", line="E5E7EB", size=22, bold=True, align="ctr"),
     ], bg="F7FAFF")
 
     d.add_slide(title("医生科研的真实痛点", "不是缺少信息，而是缺少把信息转化为论文和课题的工作流") + [
@@ -255,24 +255,43 @@ def build_deck() -> Deck:
         stat_card(30, 5.9, 1.35, "数据难用", "03", "病例与随访数据分散，难形成队列", "F59E0B"),
         stat_card(40, 8.45, 1.35, "产出压力", "04", "论文、课题、伦理、职称材料要求持续增长", "EF4444"),
         *pipeline(60, 3.55, ["临床问题", "文献证据", "研究假设", "数据设计", "论文产出"]),
-        shape(90, 1.05, 5.45, 10.8, 0.55, "MEKS 解决的是“科研过程管理 + AI 证据增强”，不是替代医生做临床诊断。", fill="111827", prst="roundRect", size=17, color="FFFFFF", bold=True, align="ctr"),
+        shape(90, 1.05, 5.45, 10.8, 0.55, "MEKS 的核心价值：把医生碎片化科研工作，沉淀成可复用、可协作、可发表的知识资产。", fill="111827", prst="roundRect", size=16, color="FFFFFF", bold=True, align="ctr"),
     ])
 
     d.add_slide(title("产品定位", "面向三甲医院科室、青年医生、研究生和科研管理团队") + [
-        shape(10, 0.85, 1.4, 3.2, 4.5, "医生个人\n\n• 每日文献雷达\n• 论文精读卡片\n• 草稿写作助手\n• 课题/伦理材料", fill="FFFFFF", line="D1D5DB", size=17, bold=True),
-        shape(20, 4.35, 1.4, 3.2, 4.5, "科室团队\n\n• 共享知识库\n• 关注方向沉淀\n• 研究选题共创\n• 文献与病例素材", fill="FFFFFF", line="D1D5DB", size=17, bold=True),
-        shape(30, 7.85, 1.4, 3.2, 4.5, "医院管理\n\n• 科研能力提升\n• 数据与权限审计\n• 本地化部署\n• 可持续试点推广", fill="FFFFFF", line="D1D5DB", size=17, bold=True),
+        shape(10, 0.85, 1.4, 3.2, 4.5, "医生个人\n\n• 每日文献雷达\n• 论文精读卡片\n• AI 写作对话\n• 可编辑论文草稿\n• Word/PDF 导出", fill="FFFFFF", line="D1D5DB", size=16, bold=True),
+        shape(20, 4.35, 1.4, 3.2, 4.5, "科室团队\n\n• 共享知识库\n• 关注方向沉淀\n• 研究选题共创\n• 文献与病例素材\n• 统一鉴真标准", fill="FFFFFF", line="D1D5DB", size=16, bold=True),
+        shape(30, 7.85, 1.4, 3.2, 4.5, "医院管理\n\n• 科研能力提升\n• 本地化部署\n• 数据与权限审计\n• 医院水印导出\n• 可持续规模化应用", fill="FFFFFF", line="D1D5DB", size=16, bold=True),
     ])
 
-    d.add_slide(title("核心卖点一：前沿发现", "关注点驱动，自动发现和同步新论文") + [
+    d.add_slide(title("当前可演示能力地图", "从找论文、判断可信度，到形成科研产出") + [
+        shape(10, 0.8, 1.1, 2.35, 1.2, "前沿发现\n关注点 + 增量同步", fill="EAF2FF", line="BBD6FF", size=14, bold=True, align="ctr"),
+        shape(20, 3.4, 1.1, 2.35, 1.2, "文献知识库\n检索 + 问答 + 索引", fill="ECFDF5", line="A7F3D0", size=14, bold=True, align="ctr"),
+        shape(30, 6.0, 1.1, 2.35, 1.2, "论文鉴真\n六维风险评估", fill="FFF7ED", line="FED7AA", size=14, bold=True, align="ctr"),
+        shape(40, 8.6, 1.1, 2.35, 1.2, "文献精读\n异步精读卡片", fill="F5F3FF", line="DDD6FE", size=14, bold=True, align="ctr"),
+        shape(50, 0.8, 3.05, 2.35, 1.2, "研究设计\nPICO + 变量 + 终点", fill="FFFFFF", line="D1D5DB", size=14, bold=True, align="ctr"),
+        shape(60, 3.4, 3.05, 2.35, 1.2, "论文写作\nAI 对话 + 草稿编辑", fill="FFFFFF", line="D1D5DB", size=14, bold=True, align="ctr"),
+        shape(70, 6.0, 3.05, 2.35, 1.2, "病例数据集\nCSV/XLSX 统计分析", fill="FFFFFF", line="D1D5DB", size=14, bold=True, align="ctr"),
+        shape(80, 8.6, 3.05, 2.35, 1.2, "课题材料\n标书/伦理草稿", fill="FFFFFF", line="D1D5DB", size=14, bold=True, align="ctr"),
+        shape(90, 1.2, 5.1, 9.8, 0.55, "AI 优势不在替医生下结论，而在主动筛选证据、解释风险、形成可编辑科研素材。", fill="111827", color="FFFFFF", size=15, bold=True, align="ctr"),
+    ])
+
+    d.add_slide(title("核心能力一：前沿发现", "AI 关注点驱动，自动发现、同步和预筛新论文") + [
         shape(10, 0.8, 1.25, 2.55, 3.9, "关注点\n\n医生自定义疾病、技术、药物、标志物、研究人群等方向", fill="EAF2FF", line="BBD6FF", size=15),
         shape(20, 3.55, 1.25, 2.55, 3.9, "自动同步\n\n按天/周定时抓取论文，增量下载，跳过重复 DOI/PMCID", fill="ECFDF5", line="A7F3D0", size=15),
-        shape(30, 6.3, 1.25, 2.55, 3.9, "前沿指数\n\n综合发布时间、证据类型、方法标签、索引状态评分", fill="FFF7ED", line="FED7AA", size=15),
-        shape(40, 9.05, 1.25, 2.55, 3.9, "推荐理由\n\n告诉医生为什么值得读、是否可引用、是否适合做选题", fill="F5F3FF", line="DDD6FE", size=15),
-        shape(50, 1.2, 5.55, 9.8, 0.45, "示例：心血管代谢与炎症 → 每天 8 点同步 50 篇 → 推荐“重点精读 / 建议浏览 / 背景材料”", fill="111827", color="FFFFFF", size=14, bold=True, align="ctr"),
+        shape(30, 6.3, 1.25, 2.55, 3.9, "前沿指数\n\n明确标注推荐优先级；真实性风险单独展示，低风险优先", fill="FFF7ED", line="FED7AA", size=15),
+        shape(40, 9.05, 1.25, 2.55, 3.9, "可行动列表\n\n分页展示、按时间/风险/相关性排序，点击直接查看论文或鉴真结果", fill="F5F3FF", line="DDD6FE", size=15),
+        shape(50, 1.2, 5.55, 9.8, 0.45, "示例：心血管代谢与炎症 → 每天 8 点同步 50 篇 → 低风险高价值论文优先精读", fill="111827", color="FFFFFF", size=14, bold=True, align="ctr"),
     ])
 
-    d.add_slide(title("核心卖点二：医学文献知识库", "让 PDF/XML/指南/综述变成可检索、可问答、可引用的知识资产") + [
+    d.add_slide(title("AI 推荐逻辑：先可信，再有价值", "让医生优先看到低风险、高相关、真正值得读的论文") + [
+        shape(10, 0.85, 1.2, 2.55, 4.5, "第一层：真实性\n\n• 六维鉴真风险\n• 风险值越低越可信\n• 高风险论文强降权\n• 未完成鉴真显示生成中", fill="ECFDF5", line="A7F3D0", size=15, bold=True),
+        shape(20, 3.7, 1.2, 2.55, 4.5, "第二层：研究价值\n\n• 临床问题重要性\n• 证据等级\n• 样本量和设计\n• 统计方法扎实度\n• 可转化价值", fill="EAF2FF", line="BBD6FF", size=15, bold=True),
+        shape(30, 6.55, 1.2, 2.55, 4.5, "第三层：相关性\n\n• 是否匹配关注点\n• 是否贴合科室方向\n• 是否支持研究假设\n• 是否能形成选题", fill="FFF7ED", line="FED7AA", size=15, bold=True),
+        shape(40, 9.4, 1.2, 2.55, 4.5, "第四层：可用性\n\n• 是否已索引\n• 是否有全文\n• 是否可精读\n• 是否可直接引用和写作", fill="F5F3FF", line="DDD6FE", size=15, bold=True),
+    ])
+
+    d.add_slide(title("核心能力二：医学文献知识库", "AI 把 PDF/XML/指南/综述转成可检索、可问答、可引用的知识资产") + [
         *pipeline(10, 1.35, ["上传/同步", "解析正文", "语义切分", "向量索引", "问答引用"]),
         shape(40, 0.85, 3.0, 2.6, 2.4, "语义检索\n\n不是关键词匹配，而是按研究问题找到相关段落", fill="FFFFFF", line="E5E7EB", size=15),
         shape(50, 3.75, 3.0, 2.6, 2.4, "证据溯源\n\n回答必须关联论文标题、作者、期刊和片段", fill="FFFFFF", line="E5E7EB", size=15),
@@ -280,63 +299,71 @@ def build_deck() -> Deck:
         shape(70, 9.25, 3.0, 2.4, 2.4, "科室沉淀\n\n把个人阅读转成科室长期可复用资产", fill="FFFFFF", line="E5E7EB", size=15),
     ])
 
-    d.add_slide(title("核心卖点三：论文精读与可信度评估", "帮助医生快速判断一篇论文是否值得引用、值得精读") + [
-        shape(10, 0.9, 1.3, 3.5, 4.5, "精读卡片\n\n• 研究问题\n• 研究设计\n• 样本量\n• 主要结局\n• 统计方法\n• 临床意义", fill="FFFFFF", line="E5E7EB", size=15),
-        shape(20, 4.8, 1.3, 3.5, 4.5, "可信度评估\n\n• 数据统计\n• 逻辑一致性\n• 复现性\n• 图表一致性\n• 引用风险\n• 综合建议", fill="FFFFFF", line="E5E7EB", size=15),
-        shape(30, 8.7, 1.3, 2.7, 4.5, "输出价值\n\n低成本完成文献预筛，减少误读和无效引用", fill="EAF2FF", line="BBD6FF", size=16, bold=True),
+    d.add_slide(title("核心能力三：论文精读与鉴真", "AI 先读全文、先做风险判断，医生再决定是否精读和引用") + [
+        shape(10, 0.75, 1.25, 2.75, 4.55, "异步精读卡片\n\n• 研究问题\n• 研究设计\n• 样本量\n• 主要结局\n• 统计方法\n• 临床意义\n• 首次生成后保存", fill="FFFFFF", line="E5E7EB", size=14),
+        shape(20, 3.75, 1.25, 2.75, 4.55, "论文鉴真\n\n• 数据与统计\n• 逻辑一致性\n• 外部可信度\n• 复现性\n• 图表一致性\n• 引用操纵\n• 综合风险评估置顶", fill="FFFFFF", line="E5E7EB", size=14),
+        shape(30, 6.75, 1.25, 2.25, 4.55, "列表状态\n\n• 完成后绿色图标\n• 未完成显示生成中\n• 排名前列优先分析\n• 点击直接查看完整结果", fill="EAF2FF", line="BBD6FF", size=14, bold=True),
+        shape(40, 9.25, 1.25, 2.25, 4.55, "核心价值\n\n减少误读\n减少无效引用\n优先阅读低风险高价值论文", fill="ECFDF5", line="A7F3D0", size=16, bold=True, align="ctr"),
     ])
 
-    d.add_slide(title("核心卖点四：研究设计助手", "把临床问题转化为可执行的科研方案") + [
+    d.add_slide(title("核心能力四：研究设计助手", "AI 把临床问题转化为可执行、可讨论、可落地的科研方案") + [
         shape(10, 0.8, 1.1, 2.2, 1.0, "医生输入\n临床问题/病例资源", fill="EAF2FF", line="BBD6FF", size=14, bold=True, align="ctr"),
         shape(11, 3.2, 1.1, 2.2, 1.0, "AI 生成\nPICO/变量/终点", fill="ECFDF5", line="A7F3D0", size=14, bold=True, align="ctr"),
         shape(12, 5.6, 1.1, 2.2, 1.0, "系统匹配\n文献证据/类似研究", fill="FFF7ED", line="FED7AA", size=14, bold=True, align="ctr"),
         shape(13, 8.0, 1.1, 2.2, 1.0, "形成材料\n方案/CRF/SAP", fill="F5F3FF", line="DDD6FE", size=14, bold=True, align="ctr"),
         shape(20, 1.0, 3.0, 4.9, 2.6, "可输出内容\n\n• 研究题目建议\n• 纳入/排除标准\n• 变量表和数据字典\n• 统计分析计划\n• 伦理材料草稿", fill="FFFFFF", line="E5E7EB", size=15),
-        shape(30, 6.4, 3.0, 4.9, 2.6, "医生价值\n\n• 降低科研入门门槛\n• 提高选题质量\n• 让临床资源变成研究资产\n• 方便科室内部协作", fill="FFFFFF", line="E5E7EB", size=15),
+        shape(30, 6.4, 3.0, 4.9, 2.6, "核心价值\n\n• 降低科研入门门槛\n• 提高选题质量\n• 让临床资源变成研究资产\n• 方便科室内部协作", fill="FFFFFF", line="E5E7EB", size=15),
     ])
 
-    d.add_slide(title("核心卖点五：论文写作协作", "AI 给灵感，医生掌控正式草稿") + [
-        shape(10, 0.85, 1.25, 5.2, 4.7, "左侧：AI 研究对话\n\n• 持续追问和分析\n• 解释最新研究成果\n• 生成可写入片段\n• 对话记录保留\n• 选中片段插入草稿", fill="FFFFFF", line="D1D5DB", size=16),
-        shape(20, 6.55, 1.25, 5.2, 4.7, "右侧：正式草稿\n\n• 医生直接编辑\n• 实时 Markdown 预览\n• Word/PDF 导出\n• 斜置多水印\n• 不再把 AI 回复自动污染正文", fill="FFFFFF", line="D1D5DB", size=16),
+    d.add_slide(title("核心能力五：论文写作协作", "AI 给灵感和素材，医生掌控正式草稿") + [
+        shape(10, 0.85, 1.25, 5.2, 4.7, "左侧：AI 研究对话\n\n• 不直接替医生生成整篇论文\n• 围绕问题分析和启发\n• 解释最新研究成果\n• 生成可写入片段\n• 对话记录保留\n• 可选中内容导入草稿", fill="FFFFFF", line="D1D5DB", size=15),
+        shape(20, 6.55, 1.25, 5.2, 4.7, "右侧：正式草稿\n\n• 医生直接编辑完善\n• 左右分栏可拖动\n• 实时 Markdown 预览\n• Word/PDF 导出\n• 医院斜置多水印\n• 中文/英文写作场景", fill="FFFFFF", line="D1D5DB", size=15),
     ])
 
-    d.add_slide(title("客户演示路径", "10 分钟让医生看到完整闭环") + [
+    d.add_slide(title("核心能力六：病例数据集", "AI 贴近医生常见 Excel/CSV 工作方式，辅助完成轻量科研数据分析") + [
+        shape(10, 0.85, 1.25, 2.65, 4.55, "上传数据\n\n• 支持 CSV/XLSX\n• 适合医生整理后的脱敏病例表\n• 不依赖 HIS 对接即可试点", fill="EAF2FF", line="BBD6FF", size=15, bold=True),
+        shape(20, 3.75, 1.25, 2.65, 4.55, "自动识别\n\n• 字段类型\n• 缺失率\n• 唯一值\n• 变量角色建议\n• 数据预览", fill="ECFDF5", line="A7F3D0", size=15, bold=True),
+        shape(30, 6.65, 1.25, 2.65, 4.55, "基础统计\n\n• 数值变量摘要\n• 分类变量频数\n• 缺失情况排序\n• 为统计分析计划做准备", fill="FFF7ED", line="FED7AA", size=15, bold=True),
+        shape(40, 9.55, 1.25, 2.25, 4.55, "科研建议\n\nAI 根据字段和问题生成选题、变量、分析方法和论文结果段落建议", fill="F5F3FF", line="DDD6FE", size=15, bold=True),
+    ])
+
+    d.add_slide(title("产品价值闭环", "医生为什么会持续使用：因为每一步都能留下可复用产出") + [
         *pipeline(10, 1.1, ["建关注点", "自动同步", "精读论文", "设计课题", "生成草稿"]),
-        shape(40, 0.9, 2.8, 10.8, 2.7, "演示脚本\n\n1. 创建“心衰 + 炎症标志物”关注点并自动下载论文\n2. 查看前沿推荐列表和趋势关键词\n3. 打开一篇论文，查看精读/鉴真结果\n4. 基于论文问 AI：还能形成哪些研究假设？\n5. 选中 AI 片段插入右侧论文草稿，预览并导出 Word/PDF", fill="FFFFFF", line="E5E7EB", size=16),
+        shape(40, 0.9, 2.8, 10.8, 2.7, "持续使用的原因\n\n1. 系统主动发现新论文，医生不再每天重复检索\n2. AI 先做可信度和价值预筛，减少无效阅读\n3. 精读卡片、鉴真结果、问答记录会沉淀为科室知识资产\n4. 研究设计和写作素材可以直接进入草稿\n5. Word/PDF 导出支持医院水印，便于内部流转和评审", fill="FFFFFF", line="E5E7EB", size=15),
     ])
 
-    d.add_slide(title("差异化优势", "不是一个聊天框，而是面向医生科研产出的系统") + [
+    d.add_slide(title("AI 产品优势", "不是一个聊天框，而是面向医生科研产出的智能工作台") + [
         shape(10, 0.8, 1.15, 2.6, 4.7, "通用大模型\n\n• 临时问答\n• 无本地知识沉淀\n• 缺少权限审计\n• 难以连接科研工作流", fill="FEE2E2", line="FCA5A5", size=15),
         shape(20, 3.75, 1.15, 2.6, 4.7, "传统文献管理\n\n• 管 PDF 和引用\n• 不理解研究问题\n• 不自动发现前沿\n• 不辅助写作和课题", fill="FEF3C7", line="FCD34D", size=15),
-        shape(30, 6.7, 1.15, 2.6, 4.7, "MEKS\n\n• 前沿发现\n• 私有知识库\n• 证据溯源\n• 科研设计\n• 论文协作\n• 本地部署", fill="DCFCE7", line="86EFAC", size=15),
-        shape(40, 9.65, 1.15, 2.6, 4.7, "医院价值\n\n• 科研提效\n• 科室资产沉淀\n• 青年医生培养\n• 院内合规可控", fill="DBEAFE", line="93C5FD", size=15),
+        shape(30, 6.7, 1.15, 2.6, 4.7, "MEKS\n\n• 前沿发现\n• 私有知识库\n• 论文鉴真\n• 精读卡片\n• 科研设计\n• 论文协作\n• 病例数据集", fill="DCFCE7", line="86EFAC", size=15),
+        shape(40, 9.65, 1.15, 2.6, 4.7, "核心价值\n\n• 科研提效\n• 科室资产沉淀\n• 青年医生培养\n• 院内合规可控", fill="DBEAFE", line="93C5FD", size=15),
     ])
 
-    d.add_slide(title("部署与合规", "先轻量试点，再接入院内数据") + [
-        shape(10, 0.9, 1.2, 3.2, 4.6, "第一阶段\n公开文献 + 上传资料\n\n• 无需接 HIS\n• 快速验证价值\n• 科室级试点", fill="FFFFFF", line="E5E7EB", size=16),
+    d.add_slide(title("部署与合规", "先轻量验证价值，再按医院要求接入院内数据") + [
+        shape(10, 0.9, 1.2, 3.2, 4.6, "第一阶段\n公开文献 + 上传资料\n\n• 无需接 HIS\n• 快速验证价值\n• 科室级应用验证", fill="FFFFFF", line="E5E7EB", size=16),
         shape(20, 4.5, 1.2, 3.2, 4.6, "第二阶段\n院内私有化部署\n\n• 访问控制\n• 审计日志\n• 数据隔离\n• 模型网关", fill="FFFFFF", line="E5E7EB", size=16),
         shape(30, 8.1, 1.2, 3.2, 4.6, "第三阶段\n科研数据治理\n\n• 病例抽取\n• 队列构建\n• CRF/数据字典\n• 研究型病房", fill="FFFFFF", line="E5E7EB", size=16),
     ])
 
-    d.add_slide(title("试点建议", "建议从 1-2 个科研活跃科室切入") + [
-        shape(10, 0.9, 1.1, 2.55, 4.5, "试点对象\n\n• 心血管\n• 肿瘤\n• 神经内科\n• 呼吸\n• 内分泌\n• 药学/检验", fill="FFFFFF", line="E5E7EB", size=16),
-        shape(20, 3.75, 1.1, 2.55, 4.5, "试点周期\n\n4-8 周\n\n• 配置关注点\n• 建知识库\n• 训练使用流程\n• 收集产出案例", fill="FFFFFF", line="E5E7EB", size=16),
-        shape(30, 6.6, 1.1, 2.55, 4.5, "验收指标\n\n• 新论文发现量\n• 精读节省时间\n• 草稿产出数量\n• 课题方向数量", fill="FFFFFF", line="E5E7EB", size=16),
-        shape(40, 9.45, 1.1, 2.55, 4.5, "扩展路径\n\n科室试点 → 多科室复制 → 科研处平台 → 院内数据接入", fill="FFFFFF", line="E5E7EB", size=16),
+    d.add_slide(title("落地路径", "从高频科研场景切入，让医生先看到明确收益") + [
+        shape(10, 0.9, 1.1, 2.55, 4.5, "适用科室\n\n• 心血管\n• 肿瘤\n• 神经内科\n• 呼吸\n• 内分泌\n• 药学/检验", fill="FFFFFF", line="E5E7EB", size=16),
+        shape(20, 3.75, 1.1, 2.55, 4.5, "使用周期\n\n4-8 周即可形成初步资产\n\n• 配置关注点\n• 建知识库\n• 沉淀精读卡片\n• 形成选题和草稿", fill="FFFFFF", line="E5E7EB", size=15),
+        shape(30, 6.6, 1.1, 2.55, 4.5, "价值指标\n\n• 新论文发现量\n• 精读节省时间\n• 草稿产出数量\n• 课题方向数量", fill="FFFFFF", line="E5E7EB", size=16),
+        shape(40, 9.45, 1.1, 2.55, 4.5, "扩展路径\n\n科室应用 → 多科室复制 → 科研处平台 → 院内数据接入", fill="FFFFFF", line="E5E7EB", size=16),
     ])
 
-    d.add_slide(title("产品路线图", "围绕医生科研产出持续增强") + [
-        shape(10, 1.0, 1.25, 2.4, 3.8, "V1 已具备\n\n• 前沿发现\n• 文献知识库\n• 论文鉴真\n• AI 写作草稿\n• Word/PDF 导出", fill="EAF2FF", line="BBD6FF", size=15),
-        shape(20, 3.75, 1.25, 2.4, 3.8, "V2 重点\n\n• 论文精读卡片\n• 研究设计助手\n• 引用管理\n• 伦理/标书模板", fill="ECFDF5", line="A7F3D0", size=15),
-        shape(30, 6.5, 1.25, 2.4, 3.8, "V3 扩展\n\n• 病例结构化\n• 队列构建\n• 数据字典\n• 统计分析计划", fill="FFF7ED", line="FED7AA", size=15),
-        shape(40, 9.25, 1.25, 2.4, 3.8, "V4 平台化\n\n• 院级知识库\n• 科研项目管理\n• 多模型网关\n• 合规审计", fill="F5F3FF", line="DDD6FE", size=15),
+    d.add_slide(title("产品路线图", "当前版本已能演示闭环，后续围绕真实科研场景加深") + [
+        shape(10, 1.0, 1.25, 2.4, 3.8, "当前已具备\n\n• 前沿发现\n• 文献知识库\n• 论文鉴真\n• 精读卡片\n• AI 写作草稿\n• Word/PDF 导出\n• 病例数据集", fill="EAF2FF", line="BBD6FF", size=14),
+        shape(20, 3.75, 1.25, 2.4, 3.8, "近期增强\n\n• 推荐指数重构\n• AI 语义趋势\n• 引用管理\n• 伦理/标书模板\n• 统计分析计划", fill="ECFDF5", line="A7F3D0", size=14),
+        shape(30, 6.5, 1.25, 2.4, 3.8, "科室试点\n\n• 重点病种模板\n• 科室关注点库\n• 研究小组协作\n• 论文产出看板", fill="FFF7ED", line="FED7AA", size=14),
+        shape(40, 9.25, 1.25, 2.4, 3.8, "院级扩展\n\n• 院级知识库\n• 科研项目管理\n• HIS/EMR 数据接口\n• 多模型网关\n• 合规审计", fill="F5F3FF", line="DDD6FE", size=14),
     ])
 
     d.add_slide([
         shape(10, 0.8, 0.75, 4.0, 0.6, "MEKS", fill="1677FF", prst="roundRect", size=26, color="FFFFFF", bold=True, align="ctr"),
         shape(20, 0.9, 1.65, 10.4, 1.0, "把医生每天遇到的临床问题，转化为可沉淀、可协作、可发表的科研产出", fill=None, size=30, color="111827", bold=True, align="ctr"),
-        shape(30, 2.1, 3.35, 8.8, 0.75, "建议下一步：选择 1 个科研活跃科室，启动 4 周试点", fill="111827", color="FFFFFF", size=20, bold=True, align="ctr"),
-        shape(40, 3.2, 4.55, 6.6, 0.65, "前沿发现 + 文献精读 + 论文草稿：先做出医生可感知的产出", fill="FFFFFF", line="E5E7EB", size=16, align="ctr"),
+        shape(30, 2.1, 3.35, 8.8, 0.75, "让医生主动买单的不是“AI 概念”，而是更快形成可信科研产出", fill="111827", color="FFFFFF", size=19, bold=True, align="ctr"),
+        shape(40, 3.2, 4.55, 6.6, 0.65, "前沿发现 + 论文鉴真 + 精读卡片 + 写作草稿：让每次使用都留下资产", fill="FFFFFF", line="E5E7EB", size=15, align="ctr"),
     ], bg="F7FAFF")
 
     return d

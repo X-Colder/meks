@@ -22,6 +22,9 @@ class DocumentResponse(BaseModel):
     uploaded_by: UUID
     created_at: datetime
     error_message: str | None = None
+    analysis_status: str | None = None
+    analysis_risk_score: int | None = None
+    risk_level: str | None = None
 
     model_config = {"from_attributes": True}
 
